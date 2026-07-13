@@ -16,7 +16,7 @@ public class studySessionController {
     private SessionRepository sessionRepository;
 
     @Autowired
-    private GeminiService geminiService;
+    private GroqService groqService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -24,7 +24,7 @@ public class studySessionController {
     @PostMapping("/createPlan")
     public String createStudyPlan(@RequestBody examRequest request) {
         try {
-            String aiResponseJson = geminiService.generateStudyPlanJson(
+            String aiResponseJson = groqService.generateStudyPlanJson(
                     request.getSubject(),
                     request.getExamDate(),
                     request.getTotalHours()
