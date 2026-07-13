@@ -1,0 +1,9 @@
+### Test the POST request to create a study plan
+POST http://localhost:8080/api/sessions/createPlan
+Content-Type: application/json
+
+{
+  "subject": "Mathematics",
+  "examDate": "2026-07-20",
+  "totalHours": 12
+}
