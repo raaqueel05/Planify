@@ -4,6 +4,6 @@ Content-Type: application/json
 
 {
   "subject": "Mathematics",
-  "examDate": "2026-07-20",
-  "totalHours": 12
+  "examDate": "2026-07-21",
+  "totalHours": 25
 }

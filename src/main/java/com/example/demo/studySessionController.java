@@ -1,9 +1,13 @@
 package com.example.demo;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDate;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/sessions")
@@ -11,43 +15,32 @@ public class studySessionController {
     @Autowired
     private SessionRepository sessionRepository;
 
-    @GetMapping("/createTest")
-    public String createTest(){
-        studySession studySession = new studySession(
-                java.time.LocalDate.now(),
-                90,
-                "Pomodoro"
-        );
-        sessionRepository.save(studySession);
+    @Autowired
+    private GeminiService geminiService;
 
-        return "success";
-    }
-
-    @GetMapping("/list")
-    public java.util.List<studySession> list(){
-        return sessionRepository.findAll();
-    }
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @PostMapping("/createPlan")
-    public String createPlan(@RequestBody examRequest examRequest){
-        String subjectName = examRequest.getSubject();
-        int hoursToStudy = examRequest.getTotalHours();
+    public String createStudyPlan(@RequestBody examRequest request) {
+        try {
+            String aiResponseJson = geminiService.generateStudyPlanJson(
+                    request.getSubject(),
+                    request.getExamDate(),
+                    request.getTotalHours()
+            );
 
-        studySession studySession = new studySession(
-                LocalDate.now().plusDays(1),
-                (hoursToStudy * 60) / 2,
-                "Theoretical review of " + subjectName + " using Active Recall."
-        );
+            List<studySession> generatedSessions = objectMapper.readValue(
+                    aiResponseJson,
+                    new TypeReference<List<studySession>>() {}
+            );
 
-        studySession studySession2 = new studySession(
-                examRequest.getExamDate().minusDays(1),
-                (hoursToStudy * 60) / 2,
-                "Practical mock exam for " + subjectName + " under real time constraints."
-        );
+            sessionRepository.saveAll(generatedSessions);
 
-        sessionRepository.save(studySession);
-        sessionRepository.save(studySession2);
-
-        return "Successfully created and saved a 2-session study plan for " + subjectName + "!";
+            return "Successfully created a customized AI study plan with " + generatedSessions.size() + " sessions";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error generating the AI study plan: "  + e.getMessage();
+        }
     }
 }
